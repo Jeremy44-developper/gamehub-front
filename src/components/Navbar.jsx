@@ -1,9 +1,25 @@
-import { Link, useNavigate } from 'react-router-dom';
-import { Gamepad2, LogOut, User, LogIn, UserPlus } from 'lucide-react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Shield, LogOut, ArrowLeft } from 'lucide-react';
+import logo from '../assets/logo.png'; // Assure-toi que le chemin correspond à ton image
 
 export default function Navbar() {
   const navigate = useNavigate();
+  const location = useLocation();
   const token = localStorage.getItem('token');
+
+  const isAdminPage = location.pathname.startsWith('/admin');
+
+  const getUserRoles = () => {
+    if (!token) return [];
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.roles || [];
+    } catch {
+      return [];
+    }
+  };
+
+  const isAdmin = getUserRoles().includes('ROLE_ADMIN');
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -11,40 +27,70 @@ export default function Navbar() {
   };
 
   return (
-    <header className="bg-slate-800 border-b border-slate-700 py-4 px-6 sm:px-10 flex justify-between items-center shadow-md w-full">
-      <Link to="/" className="flex items-center space-x-3 hover:opacity-85 transition">
-        <Gamepad2 className="w-8 h-8 text-indigo-400" />
-        <span className="text-xl font-bold tracking-wider">Game<span className="text-indigo-400">Hub</span></span>
+    <nav className="bg-slate-950 border-b border-slate-800 px-8 py-4 flex justify-between items-center w-full sticky top-0 z-50 shadow-xl shadow-black/50">
+      {/* Logo et Nom du site */}
+      <Link to="/" className="flex items-center space-x-4 group">
+        <div className="relative">
+          <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500 to-amber-500 rounded-xl blur opacity-30 group-hover:opacity-75 transition duration-300"></div>
+          <img 
+            src={logo} 
+            alt="GameHub Logo" 
+            className="relative h-12 w-auto object-contain transform group-hover:scale-105 transition duration-300" 
+          />
+        </div>
+        <span className="text-2xl font-black tracking-widest uppercase font-sans">
+          <span className="text-cyan-400 drop-shadow-[0_0_12px_rgba(6,182,212,0.4)]">GAME</span>
+          <span className="text-amber-500 drop-shadow-[0_0_12px_rgba(245,158,11,0.4)]">HUB</span>
+        </span>
       </Link>
 
-      <div className="flex items-center space-x-4">
+      {/* Actions de navigation (taille augmentée pour un meilleur confort visuel) */}
+      <div className="flex items-center space-x-5">
+        {isAdmin && (
+          isAdminPage ? (
+            <Link 
+              to="/" 
+              className="flex items-center space-x-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20 px-4 py-2.5 rounded-xl text-base font-bold transition shadow-md"
+            >
+              <ArrowLeft className="w-5 h-5 text-amber-400" />
+              <span>Retour au catalogue</span>
+            </Link>
+          ) : (
+            <Link 
+              to="/admin" 
+              className="flex items-center space-x-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20 px-4 py-2.5 rounded-xl text-base font-bold transition shadow-md"
+            >
+              <Shield className="w-5 h-5" />
+              <span>Administration</span>
+            </Link>
+          )
+        )}
+
         {token ? (
-          <button 
+          <button
             onClick={handleLogout}
-            className="flex items-center space-x-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 px-4 py-2 rounded-lg text-sm font-medium transition duration-200"
+            className="flex items-center space-x-2 bg-slate-900 hover:bg-slate-800 text-slate-300 px-4.5 py-2.5 rounded-xl text-base font-medium transition border border-slate-800"
           >
-            <LogOut className="w-4 h-4" />
+            <LogOut className="w-5 h-5" />
             <span>Déconnexion</span>
           </button>
         ) : (
-          <div className="flex items-center space-x-3">
-            <Link 
-              to="/login" 
-              className="flex items-center space-x-1.5 text-slate-300 hover:text-white px-3 py-2 rounded-lg text-sm font-medium transition"
+          <div className="flex items-center space-x-4">
+            <Link
+              to="/login"
+              className="text-slate-300 hover:text-cyan-400 text-base font-medium transition px-3 py-2"
             >
-              <LogIn className="w-4 h-4 text-indigo-400" />
-              <span>Connexion</span>
+              Connexion
             </Link>
-            <Link 
-              to="/register" 
-              className="flex items-center space-x-1.5 bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-lg shadow-indigo-600/20"
+            <Link
+              to="/register"
+              className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 px-6 py-3 rounded-xl text-base font-extrabold transition shadow-lg shadow-cyan-500/25"
             >
-              <UserPlus className="w-4 h-4" />
-              <span>Inscription</span>
+              Inscription
             </Link>
           </div>
         )}
       </div>
-    </header>
+    </nav>
   );
 }
